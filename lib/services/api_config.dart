@@ -2,7 +2,7 @@ import 'rider_orders_db.dart';
 
 class ApiConfig {
   // Toggle this or assign at runtime to switch environments
-  static bool useSellerCenter = true;
+  static bool useSellerCenter = false;
   static bool? _lastUseSellerCenter;
 
   // Base originss

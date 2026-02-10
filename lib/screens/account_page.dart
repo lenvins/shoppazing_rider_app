@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/user_session_db.dart';
 import 'map_page.dart';
+import 'account_activation_page.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -122,6 +123,29 @@ class _AccountPageState extends State<AccountPage> {
               },
             ),
           ],
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF5D8AA8),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AccountActivationPage(),
+                ),
+              );
+            },
+            child: const Text('Activate your Account'),
+          ),
         ),
         const SizedBox(height: 16),
         SizedBox(

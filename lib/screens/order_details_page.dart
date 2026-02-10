@@ -379,9 +379,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         headers: {'Content-Type': 'application/json'},
       );
 
+      final responseData = jsonDecode(response.body);
+
       debugPrint('response: ${response.body}');
 
-      if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (responseData['status_code'] == 200) {
         if (!mounted) return;
 
         // Best-effort immediate UI update; auto-refresh will reconcile.

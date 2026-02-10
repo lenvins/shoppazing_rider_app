@@ -76,8 +76,7 @@ class _MapPageState extends State<MapPage> {
                   children: [
                     TileLayer(
                       urlTemplate:
-                          'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      subdomains: const ['a', 'b', 'c'],
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       userAgentPackageName: 'com.example.shoppazing_rider_app',
                     ),
                     MarkerLayer(
@@ -91,7 +90,7 @@ class _MapPageState extends State<MapPage> {
                           ),
                           child: const Icon(
                             Icons.location_pin,
-                            color: Colors.red,
+                            color: Colors.blue,
                             size: 36,
                           ),
                         ),
