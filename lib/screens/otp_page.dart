@@ -18,10 +18,8 @@ class OtpPage extends StatefulWidget {
 }
 
 class _OtpPageState extends State<OtpPage> {
-  final List<TextEditingController> controllers = List.generate(
-    6,
-    (index) => TextEditingController(),
-  );
+  // Controllers were removed after upgrading pin_code_fields package
+  // since the new MaterialPinField does not use explicit controllers.
   bool isLoading = false;
   String? mobileNo;
   bool _isInitialized = false;
@@ -241,7 +239,7 @@ class _OtpPageState extends State<OtpPage> {
               expiresInSeconds = 0;
             }
 
-            final issuedIso = DateTime.now().toIso8601String();
+            // timestamp removed; not used
 
             await UserSessionDB.saveSession(
               accessToken: bearerToken,
@@ -257,7 +255,7 @@ class _OtpPageState extends State<OtpPage> {
               mobileConfirmed: phoneConfirmed,
               riderId: riderId,
               roleName: roleName,
-              // issued: issuedIso,
+              // issued field intentionally omitted
               // expires: '',
             );
           } catch (e) {
@@ -374,9 +372,7 @@ class _OtpPageState extends State<OtpPage> {
 
   @override
   void dispose() {
-    for (var controller in controllers) {
-      controller.dispose();
-    }
+    // nothing to dispose anymore
     super.dispose();
   }
 
@@ -415,26 +411,20 @@ class _OtpPageState extends State<OtpPage> {
                   // Clamp fieldWidth to a minimum/maximum if you want
                   fieldWidth = fieldWidth.clamp(40.0, 60.0);
 
-                  return PinCodeTextField(
-                    appContext: context,
+                  return MaterialPinField(
                     length: 6,
-                    obscureText: false,
-                    animationType: AnimationType.fade,
-                    pinTheme: PinTheme(
-                      shape: PinCodeFieldShape.box,
+                    theme: MaterialPinTheme(
+                      shape: MaterialPinShape.outlined,
+                      cellSize: Size(fieldWidth, 60),
                       borderRadius: BorderRadius.circular(8),
-                      fieldHeight: 60,
-                      fieldWidth: fieldWidth,
-                      activeFillColor: Colors.white,
-                      selectedFillColor: Colors.white,
-                      inactiveFillColor: Colors.white,
-                      activeColor: const Color(0xFF5D8AA8),
-                      selectedColor: const Color(0xFF5D8AA8),
-                      inactiveColor: Colors.grey,
+                      fillColor: Colors.white,
+                      focusedFillColor: Colors.white,
+                      filledFillColor: Colors.white,
+                      borderColor: Colors.grey,
+                      focusedBorderColor: const Color(0xFF5D8AA8),
+                      filledBorderColor: const Color(0xFF5D8AA8),
+                      spacing: 8,
                     ),
-                    animationDuration: const Duration(milliseconds: 300),
-                    backgroundColor: Colors.white,
-                    enableActiveFill: true,
                     keyboardType: TextInputType.number,
                     onChanged: (value) {
                       setState(() {

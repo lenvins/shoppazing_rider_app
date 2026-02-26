@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shoppazing_rider_app/services/api_config.dart';
-import 'dashboard_page.dart';
+import 'dashboard_page.dart' hide Colors, Row;
 import 'account_page.dart';
 import 'order_details_page.dart';
 import 'account_activation_page.dart';

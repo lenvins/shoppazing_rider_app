@@ -14,27 +14,28 @@ class GoogleSignInService {
     try {
       debugPrint('Starting Google Sign-In process...');
 
-      // Initialize Google Sign-In with proper configuration
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        scopes: ['email', 'profile'],
-      );
+      // Use the singleton instance; constructor is no longer public.
+      final GoogleSignIn googleSignIn = GoogleSignIn.instance;
 
-      debugPrint('Google Sign-In initialized, attempting sign in...');
-
-      // Trigger the authentication flow
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-
-      debugPrint(
-          'Google Sign-In result: ${googleUser != null ? "Success" : "Cancelled"}');
-
-      if (googleUser == null) {
+      // Perform interactive authentication.  The new API throws if the user
+      // cancels; handle that via catch block below.
+      debugPrint('Google Sign-In instance ready, authenticating...');
+      late final GoogleSignInAccount googleUser;
+      try {
+        googleUser = await googleSignIn.authenticate(
+          // scopeHint is optional; the plugin already requests basic profile
+          // scopes by default.  Provide a hint to cover our previous usage.
+          scopeHint: const ['email', 'profile'],
+        );
+      } on Exception catch (e) {
+        debugPrint('Authentication error/ cancelled: $e');
         return GoogleSignInResult(
           success: false,
-          error: 'Sign in was cancelled by user',
+          error: e.toString(),
         );
       }
 
-      // Obtain the auth details from the account
+      // Obtain the auth details from the account (currently only idToken)
       debugPrint('Getting Google authentication details...');
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
@@ -42,9 +43,9 @@ class GoogleSignInService {
       debugPrint(
           'Google auth details obtained, creating Firebase credential...');
 
-      // Create a new credential
+      // Create a new credential using only the idToken (accessToken is now
+      // obtained separately if needed).
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
@@ -74,7 +75,7 @@ class GoogleSignInService {
         lastName: _extractLastName(firebaseUser.displayName ?? ''),
         photoUrl: firebaseUser.photoURL ?? '',
         idToken: googleAuth.idToken ?? '',
-        accessToken: googleAuth.accessToken ?? '',
+        accessToken: await _fetchAccessToken(googleUser) ?? '',
       );
 
       return GoogleSignInResult(success: true, userData: userData);
@@ -105,7 +106,7 @@ class GoogleSignInService {
   /// Sign out from Google
   Future<void> signOut() async {
     try {
-      final GoogleSignIn googleSignIn = GoogleSignIn();
+      final GoogleSignIn googleSignIn = GoogleSignIn.instance;
       await googleSignIn.signOut();
       await _firebaseAuth.signOut();
     } catch (e) {
@@ -122,8 +123,10 @@ class GoogleSignInService {
   /// Get current Google user
   Future<GoogleSignInAccount?> getCurrentUser() async {
     try {
-      final GoogleSignIn googleSignIn = GoogleSignIn();
-      return await googleSignIn.signInSilently();
+      final GoogleSignIn googleSignIn = GoogleSignIn.instance;
+      // attemptLightweightAuthentication is the closest equivalent to the
+      // old signInSilently; it may still return null if there is no session.
+      return await googleSignIn.attemptLightweightAuthentication();
     } catch (e) {
       debugPrint('Error getting current user: $e');
       return null;
@@ -145,6 +148,22 @@ class GoogleSignInService {
       return parts.sublist(1).join(' ');
     }
     return '';
+  }
+
+  /// Try to get an OAuth access token for the given account and scopes.
+  ///
+  /// The new google_sign_in API surfaces access tokens through the
+  /// [GoogleSignInAuthorizationClient], which requires explicit scope
+  /// authorization. This method returns null if the token cannot be obtained.
+  Future<String?> _fetchAccessToken(GoogleSignInAccount account) async {
+    try {
+      final authz = await account.authorizationClient
+          .authorizationForScopes(const ['email', 'profile']);
+      return authz?.accessToken;
+    } catch (e) {
+      debugPrint('Unable to fetch access token: $e');
+      return null;
+    }
   }
 }
 

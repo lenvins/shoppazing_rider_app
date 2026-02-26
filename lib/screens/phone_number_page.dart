@@ -284,7 +284,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                 expiresInSeconds = 0;
               }
 
-              final issuedIso = DateTime.now().toIso8601String();
+              // timestamp removed; not used anymore
 
               await UserSessionDB.saveSession(
                 accessToken: bearerToken,
@@ -301,7 +301,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                     userData?['PhoneNumberConfirmed']?.toString() ?? '',
                 riderId: userData?['RiderId']?.toString() ?? '',
                 roleName: userData?['RoleName']?.toString() ?? '',
-                // issued: issuedIso,
+                // issued field intentionally omitted
                 // expires: '',
               );
             } catch (e) {

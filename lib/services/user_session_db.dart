@@ -195,7 +195,7 @@ class UserSessionDB {
     try {
       final session = await getSession();
       if (session != null) {
-        final isValid = true;
+        // validity check not yet implemented
       }
     } catch (e) {}
   }
@@ -254,10 +254,8 @@ class UserSessionDB {
         return null;
       }
 
-      final isValid = true;
-      if (isValid) {
-        return session;
-      }
+      // assume session valid for now
+      return session;
     } catch (e) {
       // Clear session on error to prevent stuck states
       try {
@@ -288,7 +286,8 @@ class UserSessionDB {
             await db.rawQuery('SELECT COUNT(*) as count FROM users');
 
         if (userCount.first['count'] as int > 0) {
-          final sampleUser = await db.rawQuery('SELECT * FROM users LIMIT 1');
+          // sampleUser fetched for debug; value not used
+          await db.rawQuery('SELECT * FROM users LIMIT 1');
         }
       }
     } catch (e) {}
@@ -312,8 +311,7 @@ class UserSessionDB {
         return;
       }
 
-      // Validate session
-      final isValid = true;
+      // Validate session (placeholder)
 
       // if (!isValid) {
       //   try {

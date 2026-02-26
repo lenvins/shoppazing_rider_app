@@ -117,33 +117,35 @@ Future<void> main() async {
       AndroidInitializationSettings('@mipmap/ic_launcher');
   final InitializationSettings initializationSettings =
       InitializationSettings(android: initializationSettingsAndroid);
-  // await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-  //
-  // // Debug print for foreground notifications and show local notification
-  // FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-  //
-  //   // Show a local notification if present
-  //   if (message.notification != null) {
-  //     flutterLocalNotificationsPlugin.show(
-  //       0,
-  //       message.notification!.title,
-  //       message.notification!.body,
-  //       const NotificationDetails(
-  //         android: AndroidNotificationDetails(
-  //           'default_channel_id',
-  //           'Default Channel',
-  //           importance: Importance.defaultImportance,
-  //         ),
-  //       ),
-  //     );
-  //   }
-  //   // Handle incoming order notification
-  //   if (message.notification?.title == 'Incoming Order!' &&
-  //       message.data.isNotEmpty) {
-  //     await handleIncomingOrderNotification(message.data);
-  //   } else {
-  //   }
-  // });
+  await flutterLocalNotificationsPlugin.initialize(
+    settings: initializationSettings,
+  );
+  
+  // Debug print for foreground notifications and show local notification
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+  
+    // Show a local notification if present
+    if (message.notification != null) {
+      flutterLocalNotificationsPlugin.show(
+        id: 0,
+        title: message.notification!.title,
+        body: message.notification!.body,
+        notificationDetails: const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'default_channel_id',
+            'Default Channel',
+            importance: Importance.defaultImportance,
+          ),
+        ),
+      );
+    }
+    // Handle incoming order notification
+    if (message.notification?.title == 'Incoming Order!' &&
+        message.data.isNotEmpty) {
+      await handleIncomingOrderNotification(message.data);
+    } else {
+    }
+  });
 
   // Debug print for background notifications
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {

@@ -99,9 +99,7 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  bool _isBalanceLow() {
-    return _balance < 100;
-  }
+  // removed _isBalanceLow helper (unused after refactor)
 
   @override
   Widget build(BuildContext context) {

@@ -52,7 +52,7 @@ class _EmailLoginPageState extends State<EmailLoginPage> {
         final data = jsonDecode(response.body);
 
         final userId = data['UserId'].toString();
-        final riderId = data['RiderId']?.toString() ?? '0';
+        // riderId not used in this flow
         final roleName = data['RoleName']?.toString() ?? '';
 
         // Check if user has CUSTOMER role - restrict login
