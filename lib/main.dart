@@ -19,6 +19,7 @@ import 'dart:async';
 import 'services/api_client.dart';
 import 'services/api_config.dart';
 import 'services/navigation_service.dart';
+import 'firebase_options.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -73,7 +74,9 @@ Future<void> fetchOrdersInBackground({
 
 /// FCM background handler
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   if (message.data.isNotEmpty &&
       message.data['EXTRA_ORDER_HEADER_ID'] != null) {
     final session = await UserSessionDB.getSession();
@@ -94,7 +97,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // Request notification permissions
   await _requestNotificationPermissions();
