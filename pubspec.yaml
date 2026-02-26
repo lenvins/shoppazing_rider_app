@@ -36,27 +36,27 @@ dependencies:
   cupertino_icons: ^1.0.2
   http: ^1.4.0
   shared_preferences: ^2.2.2
-  flutter_map: ^7.0.2
+  flutter_map: ^8.2.2
   latlong2: ^0.9.1
   geolocator: ^14.0.1
 
-  firebase_core: ^3.15.2
-  firebase_auth: ^5.3.3
-  firebase_database: ^11.0.0
-  firebase_messaging: ^15.2.10
-  firebase_storage: ^12.3.2
-  flutter_local_notifications: ^19.2.1
+  firebase_core: ^4.4.0
+  firebase_auth: ^6.1.4
+  firebase_database: ^12.1.3
+  firebase_messaging: ^16.1.1
+  firebase_storage: ^13.0.6
+  flutter_local_notifications: ^20.1.0
   intl: ^0.20.2
   sqflite: ^2.4.2
   path: ^1.9.1
   qr_flutter: ^4.1.0
-  pin_code_fields: ^8.0.1
+  pin_code_fields: ^9.1.0
   webview_flutter: ^4.4.2
-  connectivity_plus: ^6.0.5
+  connectivity_plus: ^7.0.0
   image_picker: ^1.0.7
   barcode_widget: ^2.0.4
-  google_sign_in: ^6.2.1
-  cloud_firestore: ^5.6.12
+  google_sign_in: ^7.2.0
+  cloud_firestore: ^6.1.2
   url_launcher: ^6.2.4
   in_app_update: ^4.2.5
   collection: ^1.19.1
@@ -72,7 +72,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
