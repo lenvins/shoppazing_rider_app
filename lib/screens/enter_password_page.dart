@@ -72,9 +72,9 @@ class _EnterPasswordPageState extends State<EnterPasswordPage> {
           return;
         }
 
-        final issuedDate = (data['.issued']?.toString().isNotEmpty == true)
-            ? data['.issued']
-            : DateTime.now().toIso8601String();
+        // final issuedDate = (data['.issued']?.toString().isNotEmpty == true)
+        //     ? data['.issued']
+        //     : DateTime.now().toIso8601String();
         await UserSessionDB.saveSession(
           accessToken: data['access_token'],
           tokenType: data['token_type'],
@@ -89,8 +89,8 @@ class _EnterPasswordPageState extends State<EnterPasswordPage> {
           mobileConfirmed: data['PhoneNumberConfirmed'],
           riderId: data['RiderId'],
           roleName: data['RoleName'],
-          issued: issuedDate,
-          expires: data['.expires'],
+          // issued: issuedDate,
+          // expires: data['.expires'],
         );
         if (mounted) {
           Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);

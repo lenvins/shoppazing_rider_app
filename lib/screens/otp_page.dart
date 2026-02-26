@@ -132,7 +132,15 @@ class _OtpPageState extends State<OtpPage> {
         final email = responseData['Email']?.toString() ?? '';
         final firstName = responseData['FirstName']?.toString() ?? '';
         final lastName = responseData['LastName']?.toString() ?? '';
-        final roleName = responseData['RoleName']?.toString() ?? '';
+        String roleName = responseData['RoleName']?.toString() ?? '';
+
+        // API sometimes returns the role inside UserGoogleAuthModel instead of at root
+        if (roleName.isEmpty) {
+          final userModel = responseData['UserGoogleAuthModel'] as Map?;
+          roleName = userModel?['RoleName']?.toString() ?? '';
+        }
+        // helpful debug when diagnosing login problems
+        print('[DEBUG] resolved roleName: $roleName');
 
         // Check if user has CUSTOMER role - restrict login
         if (roleName.toUpperCase() == 'CUSTOMER') {
@@ -152,10 +160,10 @@ class _OtpPageState extends State<OtpPage> {
         final bearerToken = responseData['BearerToken'];
         if (bearerToken is Map) {
           try {
-            final issuedDate =
-                (bearerToken['.issued']?.toString().isNotEmpty == true)
-                    ? bearerToken['.issued']
-                    : DateTime.now().toIso8601String();
+            // final issuedDate =
+            //     (bearerToken['.issued']?.toString().isNotEmpty == true)
+            //         ? bearerToken['.issued']
+            //         : DateTime.now().toIso8601String();
             await UserSessionDB.saveSession(
               accessToken: bearerToken['access_token']?.toString() ?? '',
               tokenType: bearerToken['token_type']?.toString() ?? 'bearer',
@@ -172,12 +180,21 @@ class _OtpPageState extends State<OtpPage> {
               mobileConfirmed:
                   responseData['PhoneNumberConfirmed']?.toString() ?? '',
               riderId: responseData['RiderId']?.toString() ?? '',
-              roleName: responseData['RoleName']?.toString() ?? '',
-              issued: issuedDate,
-              expires: bearerToken['.expires']?.toString() ?? '',
+              roleName: roleName,
+              // issued: issuedDate,
+              // expires: bearerToken['.expires']?.toString() ?? '',
             );
           } catch (e) {
             print('Error saving BearerToken from OTP: $e');
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to save session: ${e.toString()}'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+            return;
           }
         } else if (bearerToken is String) {
           try {
@@ -240,11 +257,20 @@ class _OtpPageState extends State<OtpPage> {
               mobileConfirmed: phoneConfirmed,
               riderId: riderId,
               roleName: roleName,
-              issued: issuedIso,
-              expires: '',
+              // issued: issuedIso,
+              // expires: '',
             );
           } catch (e) {
             print('Error saving string BearerToken from OTP: $e');
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to save session: ${e.toString()}'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+            return;
           }
         }
 
@@ -374,7 +400,7 @@ class _OtpPageState extends State<OtpPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                'We sent a code to +63 ${mobileNo ?? '••• ••• ••••'}',
+                'We sent a code to +${mobileNo ?? '••• ••• ••••'}',
                 style: TextStyle(color: Colors.grey[600], fontSize: 14),
               ),
               const SizedBox(height: 32),

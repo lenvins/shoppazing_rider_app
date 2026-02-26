@@ -11,7 +11,10 @@ import '../services/user_session_db.dart';
 import 'select_address_map_page.dart';
 
 class AccountActivationPage extends StatefulWidget {
-  const AccountActivationPage({super.key});
+  /// When provided (e.g. from Edit Profile), form is pre-filled and title is "Edit Profile".
+  final Map<String, dynamic>? initialRiderInfo;
+
+  const AccountActivationPage({super.key, this.initialRiderInfo});
 
   @override
   State<AccountActivationPage> createState() => _AccountActivationPageState();
@@ -51,22 +54,57 @@ class _AccountActivationPageState extends State<AccountActivationPage> {
   String? _tinNoPath;
   String? _sssNoPath;
 
+  bool get _isEditMode => widget.initialRiderInfo != null;
+
   @override
   void initState() {
     super.initState();
-    _loadUserDetails();
+    _loadUserDetails().then((_) {
+      if (mounted && widget.initialRiderInfo != null) {
+        _applyInitialRiderInfo(widget.initialRiderInfo!);
+      }
+    });
   }
 
   Future<void> _loadUserDetails() async {
     final session = await UserSessionDB.getSession();
-    debugPrint('[AccountActivation] _loadUserDetails: session present=${session != null}');
+    debugPrint(
+        '[AccountActivation] _loadUserDetails: session present=${session != null}');
     if (!mounted) return;
     setState(() {
       _firstName = session?['firstname']?.toString();
       _lastName = session?['lastname']?.toString();
       _riderId = session?['rider_id']?.toString();
     });
-    debugPrint('[AccountActivation] _loadUserDetails: riderId=$_riderId firstName=$_firstName lastName=$_lastName');
+    debugPrint(
+        '[AccountActivation] _loadUserDetails: riderId=$_riderId firstName=$_firstName lastName=$_lastName');
+  }
+
+  void _applyInitialRiderInfo(Map<String, dynamic> info) {
+    _middleNameController.text = (info['MiddleName']?.toString() ?? '').trim();
+    _vehicleModelController.text = (info['Vehicle']?.toString() ?? '').trim();
+    _plateNoController.text = (info['PlateNo']?.toString() ?? '').trim();
+    _driversLicenseNoController.text =
+        (info['DriversLicenseNo']?.toString() ?? '').trim();
+    _cityController.text = (info['City']?.toString() ?? '').trim();
+    _stateController.text = (info['State']?.toString() ?? '').trim();
+    _addressLine1Controller.text =
+        (info['AddressLine1']?.toString() ?? '').trim();
+    _addressLine2Controller.text =
+        (info['AddressLine2']?.toString() ?? '').trim();
+    _tinNoController.text = (info['TINNo']?.toString() ?? '').trim();
+    _sssNoController.text = (info['SSS']?.toString() ?? '').trim();
+
+    final lat = info['AddressLat'];
+    final lng = info['AddressLng'];
+    if (lat is num && lng is num) {
+      _addressLat = lat.toDouble();
+      _addressLng = lng.toDouble();
+      _address =
+          'Lat: ${_addressLat!.toStringAsFixed(5)}, Lng: ${_addressLng!.toStringAsFixed(5)}';
+    }
+
+    setState(() {});
   }
 
   @override
@@ -114,19 +152,20 @@ class _AccountActivationPageState extends State<AccountActivationPage> {
     if (result is Map) {
       final lat = result['lat'];
       final lng = result['lng'];
-      debugPrint('[AccountActivation] _openMapForAddress: result lat=$lat lng=$lng keys=${result.keys.toList()}');
+      debugPrint(
+          '[AccountActivation] _openMapForAddress: result lat=$lat lng=$lng keys=${result.keys.toList()}');
       if (lat is num && lng is num) {
         setState(() {
           _addressLat = lat.toDouble();
           _addressLng = lng.toDouble();
-          _address = result['address']?.toString() ?? 
+          _address = result['address']?.toString() ??
               'Lat: ${_addressLat!.toStringAsFixed(5)}, Lng: ${_addressLng!.toStringAsFixed(5)}';
-          
+
           // Auto-fill address fields
           final city = result['city']?.toString() ?? '';
           final state = result['state']?.toString() ?? '';
           final road = result['road']?.toString() ?? '';
-          
+
           if (city.isNotEmpty) {
             _cityController.text = city;
           }
@@ -137,12 +176,15 @@ class _AccountActivationPageState extends State<AccountActivationPage> {
             _addressLine1Controller.text = road;
           }
         });
-        debugPrint('[AccountActivation] _openMapForAddress: set address lat=$_addressLat lng=$_addressLng city=${_cityController.text} state=${_stateController.text}');
+        debugPrint(
+            '[AccountActivation] _openMapForAddress: set address lat=$_addressLat lng=$_addressLng city=${_cityController.text} state=${_stateController.text}');
       } else {
-        debugPrint('[AccountActivation] _openMapForAddress: invalid lat/lng types');
+        debugPrint(
+            '[AccountActivation] _openMapForAddress: invalid lat/lng types');
       }
     } else {
-      debugPrint('[AccountActivation] _openMapForAddress: no result or back pressed');
+      debugPrint(
+          '[AccountActivation] _openMapForAddress: no result or back pressed');
     }
   }
 
@@ -179,7 +221,8 @@ class _AccountActivationPageState extends State<AccountActivationPage> {
     }
 
     if (missingUploads.isNotEmpty) {
-      debugPrint('[AccountActivation] _submit: missing uploads: $missingUploads');
+      debugPrint(
+          '[AccountActivation] _submit: missing uploads: $missingUploads');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -253,11 +296,13 @@ class _AccountActivationPageState extends State<AccountActivationPage> {
         if (path == null || path.trim().isEmpty) return;
         final file = File(path);
         if (!await file.exists()) {
-          debugPrint('[AccountActivation] _submit: file not found for $fieldName: $path');
+          debugPrint(
+              '[AccountActivation] _submit: file not found for $fieldName: $path');
           return;
         }
         request.files.add(await http.MultipartFile.fromPath(fieldName, path));
-        debugPrint('[AccountActivation] _submit: added file $fieldName -> $path');
+        debugPrint(
+            '[AccountActivation] _submit: added file $fieldName -> $path');
       }
 
       // Files (use the API's parameter names)
@@ -268,11 +313,13 @@ class _AccountActivationPageState extends State<AccountActivationPage> {
       await addFileIfPresent('SelfieWithPlateNoPath', _selfieWithPlateNoPath);
       await addFileIfPresent('TINNoPath', _tinNoPath);
       await addFileIfPresent('SSSNoPath', _sssNoPath);
-      debugPrint('[AccountActivation] _submit: total files=${request.files.length}');
+      debugPrint(
+          '[AccountActivation] _submit: total files=${request.files.length}');
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-      debugPrint('[AccountActivation] _submit: statusCode=${response.statusCode} body=${response.body}');
+      debugPrint(
+          '[AccountActivation] _submit: statusCode=${response.statusCode} body=${response.body}');
 
       if (!mounted) return;
 
@@ -317,19 +364,20 @@ class _AccountActivationPageState extends State<AccountActivationPage> {
           );
           Navigator.pop(context, true);
         } else {
-          debugPrint('[AccountActivation] _submit: API returned not success data=$data');
+          debugPrint(
+              '[AccountActivation] _submit: API returned not success data=$data');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                message ??
-                    'Failed to update profile. Please try again later.',
+                message ?? 'Failed to update profile. Please try again later.',
               ),
               backgroundColor: Colors.red,
             ),
           );
         }
       } else {
-        debugPrint('[AccountActivation] _submit: HTTP error ${response.statusCode} body=${response.body}');
+        debugPrint(
+            '[AccountActivation] _submit: HTTP error ${response.statusCode} body=${response.body}');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -415,7 +463,7 @@ class _AccountActivationPageState extends State<AccountActivationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Activate your Account'),
+        title: Text(_isEditMode ? 'Edit Profile' : 'Activate your Account'),
         backgroundColor: const Color(0xFF5D8AA8),
         foregroundColor: Colors.white,
       ),
@@ -480,7 +528,7 @@ class _AccountActivationPageState extends State<AccountActivationPage> {
               TextFormField(
                 controller: _vehicleModelController,
                 decoration: const InputDecoration(
-                  labelText: 'Vehicle Model',
+                  labelText: 'Vehicle Name & Model',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
@@ -596,81 +644,83 @@ class _AccountActivationPageState extends State<AccountActivationPage> {
                   (path) => _profilePicPath = path,
                 ),
               ),
-              const SizedBox(height: 8),
-              _buildSectionTitle('Driver & Vehicle Documents'),
-              _buildImagePickerTile(
-                label: 'Driver\'s License',
-                path: _driversLicensePath,
-                onTap: () => _pickImage(
-                  (path) => _driversLicensePath = path,
+              if (!_isEditMode) ...[
+                const SizedBox(height: 8),
+                _buildSectionTitle('Driver & Vehicle Documents'),
+                _buildImagePickerTile(
+                  label: 'Driver\'s License',
+                  path: _driversLicensePath,
+                  onTap: () => _pickImage(
+                    (path) => _driversLicensePath = path,
+                  ),
                 ),
-              ),
-              _buildImagePickerTile(
-                label: 'Plate Number Photo',
-                path: _plateNoPath,
-                onTap: () => _pickImage(
-                  (path) => _plateNoPath = path,
+                _buildImagePickerTile(
+                  label: 'Plate Number Photo',
+                  path: _plateNoPath,
+                  onTap: () => _pickImage(
+                    (path) => _plateNoPath = path,
+                  ),
                 ),
-              ),
-              _buildImagePickerTile(
-                label: 'Selfie with ID',
-                path: _selfieWithIdPath,
-                onTap: () => _pickImage(
-                  (path) => _selfieWithIdPath = path,
+                _buildImagePickerTile(
+                  label: 'Selfie with ID',
+                  path: _selfieWithIdPath,
+                  onTap: () => _pickImage(
+                    (path) => _selfieWithIdPath = path,
+                  ),
                 ),
-              ),
-              _buildImagePickerTile(
-                label: 'Selfie with Plate Number',
-                path: _selfieWithPlateNoPath,
-                onTap: () => _pickImage(
-                  (path) => _selfieWithPlateNoPath = path,
+                _buildImagePickerTile(
+                  label: 'Selfie with Plate Number',
+                  path: _selfieWithPlateNoPath,
+                  onTap: () => _pickImage(
+                    (path) => _selfieWithPlateNoPath = path,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              _buildSectionTitle('Government IDs'),
-              TextFormField(
-                controller: _tinNoController,
-                decoration: const InputDecoration(
-                  labelText: 'TIN Number',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 8),
+                _buildSectionTitle('Government IDs'),
+                TextFormField(
+                  controller: _tinNoController,
+                  decoration: const InputDecoration(
+                    labelText: 'TIN Number',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter your TIN number';
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter your TIN number';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              _buildImagePickerTile(
-                label: 'TIN Document',
-                path: _tinNoPath,
-                onTap: () => _pickImage(
-                  (path) => _tinNoPath = path,
+                const SizedBox(height: 12),
+                _buildImagePickerTile(
+                  label: 'TIN Document',
+                  path: _tinNoPath,
+                  onTap: () => _pickImage(
+                    (path) => _tinNoPath = path,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _sssNoController,
-                decoration: const InputDecoration(
-                  labelText: 'SSS Number',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _sssNoController,
+                  decoration: const InputDecoration(
+                    labelText: 'SSS Number',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter your SSS number';
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter your SSS number';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              _buildImagePickerTile(
-                label: 'SSS Document',
-                path: _sssNoPath,
-                onTap: () => _pickImage(
-                  (path) => _sssNoPath = path,
+                const SizedBox(height: 12),
+                _buildImagePickerTile(
+                  label: 'SSS Document',
+                  path: _sssNoPath,
+                  onTap: () => _pickImage(
+                    (path) => _sssNoPath = path,
+                  ),
                 ),
-              ),
+              ],
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
@@ -705,4 +755,3 @@ class _AccountActivationPageState extends State<AccountActivationPage> {
     );
   }
 }
-

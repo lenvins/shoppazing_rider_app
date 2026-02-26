@@ -69,29 +69,35 @@ class _EmailLoginPageState extends State<EmailLoginPage> {
           return;
         }
 
-        // Determine the issued date
-        final issuedDate = (data['.issued']?.toString().isNotEmpty == true)
-            ? data['.issued']
-            : DateTime.now().toIso8601String();
-
         // Save session in SQLite
-        await UserSessionDB.saveSession(
-          accessToken: data['access_token'],
-          tokenType: data['token_type'],
-          expiresIn: data['expires_in'],
-          email: data['userName'],
-          businessName: data['BusinessName'],
-          merchantId: data['MerchantId'],
-          userId: data['UserId'],
-          firstname: data['Firstname'],
-          lastname: data['Lastname'],
-          mobileNo: data['PhoneNumber'],
-          mobileConfirmed: data['PhoneNumberConfirmed'],
-          riderId: data['RiderId'],
-          roleName: data['RoleName'],
-          issued: issuedDate,
-          expires: data['.expires'],
-        );
+        try {
+          await UserSessionDB.saveSession(
+            accessToken: data['access_token'],
+            tokenType: data['token_type'],
+            expiresIn: data['expires_in'],
+            email: data['userName'],
+            businessName: data['BusinessName'],
+            merchantId: data['MerchantId'],
+            userId: data['UserId'],
+            firstname: data['Firstname'],
+            lastname: data['Lastname'],
+            mobileNo: data['PhoneNumber'],
+            mobileConfirmed: data['PhoneNumberConfirmed'],
+            riderId: data['RiderId'],
+            roleName: data['RoleName'],
+          );
+        } catch (dbError) {
+          print('Error saving session to database: $dbError');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to save session: ${dbError.toString()}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return;
+        }
 
         // Update device info after successful login
         await DeviceService.updateDeviceInfo(userId, context);

@@ -92,8 +92,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
       final registerData = jsonDecode(registerResponse.body);
 
-      if (registerResponse.statusCode == 200 ||
-          registerData['status_code'] == 200) {
+      if (registerData['status_code'] == 200 && registerData['message'] == 'Ok') {
         // Get token
         final tokenResponse = await http.post(
           Uri.parse(ApiConfig.tokenUrl),
@@ -117,16 +116,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
             // Save session in SQLite
             print('Token Response: ${tokenResponse.body}');
             print('[DEBUG] Full token response data: $tokenData');
-            print('[DEBUG] .issued field: ${tokenData['.issued']}');
-            print('[DEBUG] .issued type: ${tokenData['.issued'].runtimeType}');
 
             // Determine the issued date
-            final issuedDate =
-                (tokenData['.issued']?.toString().isNotEmpty == true)
-                    ? tokenData['.issued']
-                    : DateTime.now().toIso8601String();
-            print('[DEBUG] Final issued date to be saved: $issuedDate');
-            print('[DEBUG] Issued date type: ${issuedDate.runtimeType}');
+            // final issuedDate =
+            //     (tokenData['.issued']?.toString().isNotEmpty == true)
+            //         ? tokenData['.issued']
+            //         : DateTime.now().toIso8601String();
 
             await UserSessionDB.saveSession(
               accessToken: tokenData['access_token'],
@@ -142,8 +137,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
               mobileConfirmed: tokenData['PhoneNumberConfirmed'],
               riderId: tokenData['RiderId'],
               roleName: tokenData['RoleName'],
-              issued: issuedDate,
-              expires: tokenData['.expires'],
+              // issued: issuedDate,
+              // expires: tokenData['.expires'],
             );
 
             // Post device token after successful registration

@@ -230,10 +230,10 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
               responseData['token'] ?? responseData['BearerToken'];
           if (bearerToken is Map) {
             try {
-              final issuedDate =
-                  (bearerToken['.issued']?.toString().isNotEmpty == true)
-                      ? bearerToken['.issued']
-                      : DateTime.now().toIso8601String();
+              // final issuedDate =
+              //     (bearerToken['.issued']?.toString().isNotEmpty == true)
+              //         ? bearerToken['.issued']
+              //         : DateTime.now().toIso8601String();
               await UserSessionDB.saveSession(
                 accessToken: bearerToken['access_token']?.toString() ?? '',
                 tokenType: bearerToken['token_type']?.toString() ?? 'bearer',
@@ -251,8 +251,8 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                     userData?['PhoneNumberConfirmed']?.toString() ?? '',
                 riderId: userData?['RiderId']?.toString() ?? '',
                 roleName: userData?['RoleName']?.toString() ?? '',
-                issued: issuedDate,
-                expires: bearerToken['.expires']?.toString() ?? '',
+                // issued: issuedDate,
+                // expires: bearerToken['.expires']?.toString() ?? '',
               );
             } catch (e) {
             }
@@ -301,8 +301,8 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                     userData?['PhoneNumberConfirmed']?.toString() ?? '',
                 riderId: userData?['RiderId']?.toString() ?? '',
                 roleName: userData?['RoleName']?.toString() ?? '',
-                issued: issuedIso,
-                expires: '',
+                // issued: issuedIso,
+                // expires: '',
               );
             } catch (e) {
             }

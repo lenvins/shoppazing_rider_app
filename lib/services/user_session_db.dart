@@ -103,9 +103,7 @@ class UserSessionDB {
               mobile_no TEXT NOT NULL,
               mobile_confirmed TEXT NOT NULL,
               rider_id TEXT NOT NULL,
-              role_name TEXT NOT NULL,
-              issued TEXT NOT NULL,
-              expires TEXT NOT NULL
+              role_name TEXT NOT NULL
             )
           ''');
         },
@@ -131,8 +129,6 @@ class UserSessionDB {
     required String mobileConfirmed,
     required String riderId,
     required String roleName,
-    required String issued,
-    required String expires,
   }) async {
     try {
       final db = await database;
@@ -152,8 +148,6 @@ class UserSessionDB {
         'mobile_confirmed': mobileConfirmed,
         'rider_id': riderId,
         'role_name': roleName,
-        'issued': issued,
-        'expires': expires,
       };
 
       await db.insert('users', sessionData);
@@ -201,60 +195,57 @@ class UserSessionDB {
     try {
       final session = await getSession();
       if (session != null) {
-        final isValid = await isSessionValid();
-        if (!isValid) {
-          await clearSession();
-        }
+        final isValid = true;
       }
     } catch (e) {}
   }
 
-  static Future<bool> isSessionValid() async {
-    final session = await getSession();
-    if (session == null) {
-      return false;
-    }
+  // static Future<bool> isSessionValid() async {
+  //   final session = await getSession();
+  //   if (session == null) {
+  //     return false;
+  //   }
 
-    try {
-      final issuedStr = session['issued'] as String;
-      final expiresIn = session['expires_in'] as int;
+  //   try {
+  //     final issuedStr = session['issued'] as String;
+  //     final expiresIn = session['expires_in'] as int;
 
-      // Handle different date formats
-      DateTime issued;
-      try {
-        issued = parseDateString(issuedStr);
-      } catch (e) {
-        return false;
-      }
+  //     // Handle different date formats
+  //     DateTime issued;
+  //     try {
+  //       issued = parseDateString(issuedStr);
+  //     } catch (e) {
+  //       return false;
+  //     }
 
-      // expires_in is typically in seconds, not hours
-      final expiry = issued.add(Duration(seconds: expiresIn));
+  //     // expires_in is typically in seconds, not hours
+  //     final expiry = issued.add(Duration(seconds: expiresIn));
 
-      final isValid = DateTime.now().isBefore(expiry);
+  //     final isValid = DateTime.now().isBefore(expiry);
 
-      return isValid;
-    } catch (e) {
-      return false;
-    }
-  }
+  //     return isValid;
+  //   } catch (e) {
+  //     return false;
+  //   }
+  // }
 
-  static Future<bool> isTokenExpiringSoon({int thresholdMinutes = 5}) async {
-    try {
-      final session = await getSession();
-      if (session == null) return false;
+  // static Future<bool> isTokenExpiringSoon({int thresholdMinutes = 5}) async {
+  //   try {
+  //     final session = await getSession();
+  //     if (session == null) return false;
 
-      final issuedStr = session['issued'] as String;
-      final expiresIn = session['expires_in'] as int;
+  //     final issuedStr = session['issued'] as String;
+  //     final expiresIn = session['expires_in'] as int;
 
-      final issued = parseDateString(issuedStr);
-      final expiry = issued.add(Duration(seconds: expiresIn));
-      final threshold = DateTime.now().add(Duration(minutes: thresholdMinutes));
+  //     final issued = parseDateString(issuedStr);
+  //     final expiry = issued.add(Duration(seconds: expiresIn));
+  //     final threshold = DateTime.now().add(Duration(minutes: thresholdMinutes));
 
-      return expiry.isBefore(threshold);
-    } catch (e) {
-      return false;
-    }
-  }
+  //     return expiry.isBefore(threshold);
+  //   } catch (e) {
+  //     return false;
+  //   }
+  // }
 
   static Future<Map<String, dynamic>?> getValidSession() async {
     try {
@@ -263,13 +254,9 @@ class UserSessionDB {
         return null;
       }
 
-      final isValid = await isSessionValid();
+      final isValid = true;
       if (isValid) {
         return session;
-      } else {
-        // Clear invalid session
-        await clearSession();
-        return null;
       }
     } catch (e) {
       // Clear session on error to prevent stuck states
@@ -326,19 +313,19 @@ class UserSessionDB {
       }
 
       // Validate session
-      final isValid = await isSessionValid();
+      final isValid = true;
 
-      if (!isValid) {
-        try {
-          final issuedStr = session['issued'] as String;
-          final expiresIn = session['expires_in'] as int;
+      // if (!isValid) {
+      //   try {
+      //     final issuedStr = session['issued'] as String;
+      //     final expiresIn = session['expires_in'] as int;
 
-          final issued = parseDateString(issuedStr);
+      //     final issued = parseDateString(issuedStr);
 
-          final expiry = issued.add(Duration(seconds: expiresIn));
-          final now = DateTime.now();
-        } catch (e) {}
-      }
+      //     final expiry = issued.add(Duration(seconds: expiresIn));
+      //     final now = DateTime.now();
+      //   } catch (e) {}
+      // }
     } catch (e) {}
   }
 }

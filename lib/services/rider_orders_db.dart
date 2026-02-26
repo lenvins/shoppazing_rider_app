@@ -163,6 +163,13 @@ class RiderOrdersDB {
     print('[DEBUG] All local data cleared from database');
   }
 
+  static Future<void> removeAcceptedOrder() async {
+    final db = await database;
+    await db.delete(
+      'accepted_orders'
+    );
+  }
+
   // Accepted orders methods
   static Future<void> addAcceptedOrder(int orderHeaderId) async {
     final db = await database;

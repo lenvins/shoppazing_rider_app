@@ -3,6 +3,7 @@ import 'package:shoppazing_rider_app/services/api_config.dart';
 import 'dashboard_page.dart';
 import 'account_page.dart';
 import 'order_details_page.dart';
+import 'account_activation_page.dart';
 // import removed: http
 import '../services/api_client.dart';
 import 'dart:convert';
@@ -195,12 +196,9 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   Timer? _autoRefreshTimer;
   bool _isRefreshing = false;
+  bool _activationDialogShown = false;
 
-  static const List<String> _pageTitles = [
-    'Orders',
-    'Dashboard',
-    'Account'
-  ];
+  static const List<String> _pageTitles = ['Orders', 'Dashboard', 'Account'];
 
   // For testing: set these to override location, or leave null to use real location
   static double? testLat;
@@ -235,6 +233,92 @@ class _HomePageState extends State<HomePage> {
 
     // Handle permissions after successful auto-login
     _handlePermissionsAfterLogin();
+    _checkAccountActivation();
+  }
+
+  Future<void> _checkAccountActivation() async {
+    if (_activationDialogShown) return;
+
+    try {
+      final session = await UserSessionDB.getSession();
+      final userId = session?['user_id']?.toString();
+      if (userId == null || userId.isEmpty) return;
+
+      final hasConnection = await NetworkService.hasInternetConnection();
+      if (!hasConnection) return;
+
+      final url = ApiConfig.apiUri('/GetRiderInfo');
+      final response = await ApiClient.post(
+        url,
+        body: jsonEncode({'UserId': userId}),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) return;
+
+      dynamic data;
+      try {
+        data = jsonDecode(response.body);
+      } catch (_) {
+        data = null;
+      }
+
+      if (data is! Map<String, dynamic>) return;
+
+      if (data['status_code'] == 200 && data['IsAccountActivated'] != true) {
+        if (!mounted || _activationDialogShown) return;
+        _activationDialogShown = true;
+
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) {
+            return AlertDialog(
+              title: const Text('Activate your account'),
+              content: const Text(
+                'Your rider account is not yet activated. '
+                'Please complete your profile so you can receive orders.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    // Set flag to temporarily dismiss dialog
+                    _activationDialogShown = true;
+                    // Optional: Set a timer to reset the flag after some time
+                    Future.delayed(const Duration(minutes: 15), () {
+                      _activationDialogShown = false;
+                    });
+                  },
+                  child: const Text('Do it later'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    Navigator.of(ctx).pop();
+                    final updated = await Navigator.push<bool>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AccountActivationPage(),
+                      ),
+                    );
+                    // If user successfully updated profile, allow re-check next time.
+                    if (updated == true) {
+                      _activationDialogShown = false;
+                      // Optionally re-check activation status
+                      _checkAccountActivation();
+                    }
+                  },
+                  child: const Text('Activate now'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      // Silent fail for activation check; app should still be usable.
+      print('[ERROR] Error checking account activation: $e');
+    }
   }
 
   Future<void> _handlePermissionsAfterLogin() async {
@@ -411,7 +495,6 @@ class _HomePageState extends State<HomePage> {
 
   double _readModifierPrice(Map<String, dynamic> mod) {
     if (mod.isEmpty) return 0.0;
-
 
     // Look for common price field names
     final priceKeys = ['Price', 'ModifierPrice', 'OptionPrice', 'UnitPrice'];
@@ -777,8 +860,7 @@ class _HomePageState extends State<HomePage> {
         useLat = 0;
         useLng = 0;
       }
-    } else {
-    }
+    } else {}
     final url = ApiConfig.apiUri('/getriderorders');
     final body = {
       'Lat': useLat,
@@ -1301,7 +1383,6 @@ class _OrderCard extends StatelessWidget {
                                     builder: (context, distanceSnapshot) {
                                       if (distanceSnapshot.hasData) {
                                         final distance = distanceSnapshot.data!;
-
 
                                         if (distance < 0) {
                                           return const Text(
